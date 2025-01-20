@@ -9,23 +9,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Install Dependencies (if any)
-        run: |
-          if [ -f package.json ]; then
-            npm install
-          fi
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
 
-      - name: Build Project (if any build step exists)
-        run: |
-          if [ -f package.json ]; then
-            npm run build
-          fi
+    - name: Install dependencies
+      run: npm install
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+    - name: Run linting
+      run: npm run lint
+
+    - name: Upload logs
+      run: |
+        mkdir logs
+        echo "Logs uploaded on $(date)" > logs/summary.log
+        tar -czf logs.tar.gz logs
+      continue-on-error: true
