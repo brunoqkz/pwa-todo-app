@@ -2,22 +2,26 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0078D7" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0078D7"/>
   <title>Checklist App</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="manifest" href="manifest.json"/>
 </head>
 
 <body>
+<header>
   <h1>My To-Do List</h1>
+</header>
+<main>
   <div class="container">
-    <input type="text" id="taskInput" placeholder="Enter a new task" />
+    <label for="taskInput">Enter a task</label><input type="text" id="taskInput" placeholder="Enter a new task"/>
     <button id="addTaskBtn">Add Task</button>
     <ul id="taskList"></ul>
   </div>
-  <script type="module" src="app.js"></script>
+</main>
+<script type="module" src="app.js"></script>
 </body>
 
 </html>

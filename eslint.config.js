@@ -1,4 +1,4 @@
-import js from "@eslint/js";
+import globals from "globals";
 
 export default [
   {
@@ -7,5 +7,13 @@ export default [
       "no-undef": "warn"
     },
     files: ["*.js"]
+  },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
   }
 ];
