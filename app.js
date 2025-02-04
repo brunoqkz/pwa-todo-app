@@ -2,6 +2,7 @@ import {initializeApp} from 'firebase/app';
 import {addDoc, collection, deleteDoc, doc, getDocs, getFirestore, updateDoc} from "firebase/firestore";
 import log from "loglevel";
 import 'dotenv/config';
+import {GoogleGenerativeAI} from '@google/generative-ai';
 
 function getFirebaseConfig() {
   return {
@@ -16,12 +17,16 @@ function getFirebaseConfig() {
 
 const app = initializeApp(getFirebaseConfig());
 const db = getFirestore(app);
+const AIModel = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY).getGenerativeModel({model: 'gemini-1.5-flash'});
 
 class TodoApp {
   constructor() {
     this.taskInput = document.getElementById('taskInput');
     this.addTaskBtn = document.getElementById('addTaskBtn');
     this.taskList = document.getElementById('taskList');
+    this.chatInput = document.getElementById('chat-input');
+    this.sendBtn = document.getElementById('send-btn');
+    this.chatHistory = document.getElementById('chat-history');
 
     this.bindEvents();
   }
@@ -31,17 +36,94 @@ class TodoApp {
     this.taskInput.addEventListener('keypress', this.handleEnterKey.bind(this));
     this.taskList.addEventListener('click', this.handleTaskClick.bind(this));
     this.taskList.addEventListener('keypress', this.handleTaskKeyPress.bind(this));
+    this.sendBtn.addEventListener('click', this.handleChatSend.bind(this));
+    this.chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        this.handleChatSend();
+      }
+    });
 
     document.addEventListener('DOMContentLoaded', this.initializeTasks.bind(this));
   }
 
-  async handleAddTask() {
+  async handleChatSend() {
+    const prompt = this.chatInput.value.trim().toLowerCase();
+    if (prompt) {
+      if (!this.handleChatCommand(prompt)) {
+        try {
+          const result = await this.askChatBot(prompt);
+          this.appendMessage("Bot: " + result.response.text());
+        } catch (error) {
+          log.error("Error getting AI response:", error);
+          this.appendMessage("Bot: Sorry, I encountered an error. Please try again.");
+        }
+      }
+      this.chatInput.value = "";
+    } else {
+      this.appendMessage("Bot: Please enter a message");
+    }
+  }
+
+  handleChatCommand(prompt) {
+    if (prompt.startsWith("add task")) {
+      const task = prompt.replace("add task", "").trim();
+      if (task) {
+        this.handleAddTask(task);
+        this.appendMessage("Bot: Task '" + task + "' added!");
+      } else {
+        this.appendMessage("Bot: Please specify a task to add.");
+      }
+      return true;
+    } else if (prompt.startsWith("complete")) {
+      const taskName = prompt.replace("complete", "").trim();
+      if (taskName) {
+        const taskFound = this.completeTaskByName(taskName);
+        if (taskFound) {
+          this.appendMessage("Bot: Task '" + taskName + "' marked as complete.");
+        } else {
+          this.appendMessage("Bot: Task not found!");
+        }
+      } else {
+        this.appendMessage("Bot: Please specify a task to complete.");
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async completeTaskByName(taskName) {
     try {
-      const taskText = this.sanitizeInput(this.taskInput.value.trim());
-      if (taskText) {
-        await this.addTaskToFirestore(taskText);
+      const tasks = await this.getTasksFromFirestore();
+      const task = tasks.find(t => t.data().text.toLowerCase() === taskName.toLowerCase());
+      if (task) {
+        await this.deleteTask(task.id);
         await this.renderTasks();
-        this.taskInput.value = "";
+        return true;
+      }
+      return false;
+    } catch (error) {
+      log.error("Error completing task:", error);
+      return false;
+    }
+  }
+
+  appendMessage(message) {
+    const history = document.createElement("div");
+    history.textContent = message;
+    history.className = 'history';
+    this.chatHistory.appendChild(history);
+    this.chatHistory.scrollTop = this.chatHistory.scrollHeight;
+  }
+
+  async handleAddTask(taskText = null) {
+    try {
+      const text = taskText || this.sanitizeInput(this.taskInput.value.trim());
+      if (text) {
+        await this.addTaskToFirestore(text);
+        await this.renderTasks();
+        if (!taskText) {
+          this.taskInput.value = "";
+        }
       } else {
         alert("Please enter a task!");
       }
@@ -53,7 +135,9 @@ class TodoApp {
 
   async addTaskToFirestore(taskText) {
     await addDoc(collection(db, "todos"), {
-      text: taskText, completed: false, createdAt: new Date()
+      text: taskText,
+      completed: false,
+      createdAt: new Date()
     });
   }
 
@@ -121,6 +205,10 @@ class TodoApp {
     const div = document.createElement("div");
     div.textContent = input;
     return div.innerHTML;
+  }
+
+  async askChatBot(request) {
+    return await AIModel.generateContent(request);
   }
 }
 
