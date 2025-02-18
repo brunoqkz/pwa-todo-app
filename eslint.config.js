@@ -4,16 +4,19 @@ export default [
   {
     rules: {
       "no-unused-vars": "warn",
-      "no-undef": "warn"
+      "no-undef": "warn",
     },
-    files: ["*.js"]
+    files: ["*.js"],
   },
   {
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node
-      }
-    }
-  }
+        ...globals.node,
+      },
+    },
+  },
+  {
+    ignores: ["dist/", "node_modules/"],
+  },
 ];
