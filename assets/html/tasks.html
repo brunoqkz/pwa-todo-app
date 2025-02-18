@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0078D7" />
+    <title>Checklist App</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="manifest" href="../../manifest.json" />
+    <link rel="icon" type="image/x-icon" href="../icons/favicon.ico" />
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-4P9V6Z8JJ5"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-4P9V6Z8JJ5");
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1>My To-Do List</h1>
+    </header>
+    <main>
+      <div>
+        <button id="signOutBttn">Sign Out</button>
+      </div>
+      <div class="container">
+        <label for="taskInput"><h2>Enter a task</h2></label>
+        <input
+          name="taskInput"
+          type="text"
+          id="taskInput"
+          placeholder="Enter a new task"
+        />
+        <button id="addTaskBtn">Add Task</button>
+        <ul aria-live="polite" id="taskList"></ul>
+      </div>
+
+      <div id="chatbot-container">
+        <div id="chat-history"></div>
+        <input type="text" id="chat-input" />
+        <button id="send-btn">Send</button>
+      </div>
+    </main>
+    <script type="module" src="../js/tasks.js"></script>
+  </body>
+</html>
